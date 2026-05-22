@@ -165,9 +165,3 @@ Die Kommunikation zwischen Tasks erfolgt über **FreeRTOS-Queues** (`RtosQueue`)
 | ESP32Servo         | Servo-PWM                                |
 | WebSockets         | WebSocket-Server (Port 81)               |
 | LittleFS           | Dateisystem auf ESP32-Flash              |
-
----
-
-## Lizenz
-
-Dieses Projekt steht unter der [MIT-Lizenz](LICENSE).
