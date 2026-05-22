@@ -6,6 +6,7 @@ Firmware für einen CoreXY-Stiftplotter auf Basis des ESP32-Mikrocontrollers. En
 
 - **Web-Interface** zur Dateiübertragung und Fernsteuerung über WLAN
 - **LCD-Benutzeroberfläche** (20×4 Zeichen) mit Drehgeber-Navigation
+- **G-Code-Ausführung** mit Unterstützung für Linien, Kreisbögen sowie quadratische und kubische Bézierkurven
 
 ---
 
@@ -48,6 +49,8 @@ Das Gerät verbindet sich mit dem konfigurierten WLAN und ist unter `penPlttr.lo
 ---
 
 ## Benutzeroberfläche (LCD)
+
+Die UI basiert auf einem selbst entwickelten widget- und layoutbasierten UI-Framework für Charakterdisplays (`src/ui/framework/`), das Fokus-Management, Eingabeverarbeitung, ein Router-System für Screens sowie wiederverwendbare Widgets umfasst.
 
 Die UI wird über einen Drehgeber gesteuert (drehen = navigieren/Wert ändern, drücken = bestätigen) und enthält vier Bildschirme:
 
