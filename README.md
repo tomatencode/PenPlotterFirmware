@@ -50,13 +50,14 @@ Das Gerät verbindet sich mit dem konfigurierten WLAN und ist unter `penPlttr.lo
 
 ## Benutzeroberfläche (LCD)
 
+![UI](screenshots/pen_plotter_ui.gif)
+
 Die UI basiert auf einem selbst entwickelten widget- und layoutbasierten UI-Framework für Charakterdisplays (`src/ui/framework/`), das Fokus-Management, Eingabeverarbeitung, ein Router-System für Screens sowie wiederverwendbare Widgets umfasst.
 
-Die UI wird über einen Drehgeber gesteuert (drehen = navigieren/Wert ändern, drücken = bestätigen) und enthält vier Bildschirme:
+Die UI wird über einen Drehgeber gesteuert (drehen = navigieren/Wert ändern, drücken = bestätigen) sie hat drei funktionen:
 
-- **Home** – Statusübersicht
+- **Druckaufträge** – Datei auswählen und Druck starten, laufenden Auftrag per Drehgeber pausieren oder abbrechen, Fortschritt in Prozent verfolgen
 - **Manuelle Steuerung** – Achsen manuell verfahren, Stift heben/senken
-- **Druckauftrag** – Datei auswählen und Druck starten, laufenden Auftrag per Drehgeber pausieren oder abbrechen, Fortschritt in Prozent verfolgen
 - **Einstellungen** – alle konfigurierbaren Parameter direkt am Gerät ändern
 
 Akustisches Feedback über den Buzzer: kurze Melodie bei Auftragsstart, -abschluss und -abbruch.
