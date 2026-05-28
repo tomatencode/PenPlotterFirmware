@@ -22,6 +22,9 @@
 class PlottingController : public SettingObserver
 {
 public:
+    /*
+        it: Similar to Pen, should PlottingController become owner of its hardware components (drivers, steppers, pen) and manage their lifecycles? This would encapsulate the hardware management within the controller and reduce the risk of dangling references. However, it also means that PlottingController would need to handle the initialization and cleanup of these components, which could increase its complexity.
+    */
     PlottingController(MotionState& motionState, RtosQueue<GcodeMessage>& gcodeQueue, SettingPersistence& settingsPersistence, RuntimeSettings& runtimeSettings);
     ~PlottingController();
 

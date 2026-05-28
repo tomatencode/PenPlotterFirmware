@@ -1,7 +1,8 @@
 #pragma once
 #include <optional>
 
-
+// it: add documentation, e.g. this is a very thin wrapper around FreeRTOS queues, but it provides type safety and RAII semantics, which can help prevent common bugs such as memory leaks or invalid queue accesses. It also abstracts away the FreeRTOS API, making the code that uses it cleaner and easier to read. However, it does add some overhead compared to using the FreeRTOS API directly, so it's important to consider whether the benefits outweigh the costs in terms of performance and code complexity for your specific use case.
+// C++20 allows for using concepts to clarify the requirements on the type T, e.g. that it must be trivially copyable to be safely sent through a FreeRTOS queue. This can help catch errors at compile time and improve code safety.
 template<typename T>
 class RtosQueue {
 public:

@@ -11,6 +11,9 @@ Pen::Pen(Servo& servo, MotionState& motionState, SettingPersistence& settingPers
     _settingPersistence.registerObserver(this);
 };
 
+/*
+    IS this class really RAII? init() is a code smell that it's not...
+*/
 void Pen::init() {
     up();
 }
