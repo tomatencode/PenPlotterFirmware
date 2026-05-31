@@ -8,22 +8,28 @@
 #include "hardware/buzzer/Buzzer.hpp"
 #include "storage/FileManager.hpp"
 #include "rtos/MotionState.hpp"
+#include "settings/RuntimeSettings.hpp"
 #include "JobObserver.hpp"
 
 struct PlotJob {
     File file = File();
+    std::string filename = "";
+
     uint32_t totalLines = 0;
     uint32_t currentBufferLine = 0;
-    std::string filename = "";
+
+    uint32_t totalTimeSeconds = 0;
+    uint32_t jobStartTimeMS = 0;
 };
 
 class JobController {
 public:
-    JobController(GCodeSender& gcodeSender, MotionState& motionState, FileManager& fileManager, Buzzer& buzzer)
+    JobController(GCodeSender& gcodeSender, MotionState& motionState, RuntimeSettings& runtimeSettings, FileManager& fileManager, Buzzer& buzzer)
         : _currentJob(PlotJob()),
           _active(false),
           _gcodeSender(gcodeSender),
           _motionState(motionState),
+          _runtimeSettings(runtimeSettings),
           _fileManager(fileManager),
           _buzzer(buzzer)
     {}
@@ -43,6 +49,8 @@ public:
     std::string getCurrentFile() const { return _currentJob.filename; }
     uint32_t getTotalLines() const { return _currentJob.totalLines; }
     uint32_t getCurrentLine() const;
+    uint32_t getTotalTimeSeconds() const;
+    uint32_t getTimeRemainingSeconds() const;
     double getProgress() const;
 
     void update();
@@ -56,6 +64,7 @@ private:
     GCodeSender& _gcodeSender;
     std::optional<GCodeSender::Token> _gcodeToken;
     MotionState& _motionState;
+    RuntimeSettings& _runtimeSettings;
     FileManager& _fileManager;
     Buzzer& _buzzer;
 

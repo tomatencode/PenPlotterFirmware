@@ -11,6 +11,8 @@ enum class Setting {
     Microsteps,
     DrawFeedRate,
     TravelFeedRate,
+    PenLiftTime,
+    MinFeatureSize,
     HomingSpeed,
     StallguardThreshold,
     HomingBackOffSpeed,

@@ -24,5 +24,8 @@ constexpr uint8_t SG_HISTORY_SIZE = 5;  // Number of SG readings to average
 constexpr float FEED_RATE_DRAW_MM_PER_S = 20.0f;
 constexpr float FEED_RATE_TRAVEL_MM_PER_S = 50.0f;
 
+// pen lift/lower delay
+constexpr float PEN_LIFT_TIME_S = 0.2f;
+
 // Minimum feature size
 constexpr float MIN_FEATURE_SIZE_MM = 1.0f;

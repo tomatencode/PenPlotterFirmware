@@ -22,6 +22,15 @@ constexpr float     MAX_DRAW_FEED_RATE_MM_PER_S         = 200.0f;
 constexpr float     MIN_TRAVEL_FEED_RATE_MM_PER_S       = 1.0f;
 constexpr float     MAX_TRAVEL_FEED_RATE_MM_PER_S       = 500.0f;
 
+// Pen lift time
+constexpr float     MIN_PEN_LIFT_TIME_S                = 0.01f;
+constexpr float     MAX_PEN_LIFT_TIME_S                = 1.0f;
+
+// Minimum feature size
+constexpr float     MIN_MIN_FEATURE_SIZE_MM             = 0.1f;
+constexpr float     MAX_MIN_FEATURE_SIZE_MM             = 10.0f;
+
+
 // Homing
 constexpr float     MIN_HOMING_SPEED_STP_PER_S          = 10.0f;
 constexpr float     MAX_HOMING_SPEED_STP_PER_S          = 2000.0f;

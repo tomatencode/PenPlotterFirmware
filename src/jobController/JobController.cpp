@@ -1,6 +1,8 @@
 #include "JobController.hpp"
 #include "config/DirectoriesConfig.hpp"
 
+#include "JobStatsCalculator.hpp"
+
 #include <FS.h>
 #include <cstring>
 #include <esp_log.h>
@@ -19,6 +21,8 @@ void JobController::start(const std::string& filename)
 
     ESP_LOGI(TAG, "Starting job: %s", filename.c_str());
 
+    auto stats = calculateStats(_fileManager, _runtimeSettings, PLOTTING_DIRECTORY + filename);
+
     _motionState.setCommand(MotionCommand::NONE); // Clear any existing motion commands
     _currentJob.file = _fileManager.openFileRead(PLOTTING_DIRECTORY + filename);
 
@@ -29,23 +33,13 @@ void JobController::start(const std::string& filename)
     }
 
     _currentJob.filename = filename;
-    _currentJob.totalLines = 0;
+    _currentJob.totalLines = stats.totalLines;
     _currentJob.currentBufferLine = 0;
+    _currentJob.totalTimeSeconds = stats.totalTimeSeconds;
+    _currentJob.jobStartTimeMS = millis();
     _active = true;
 
-    // Notify observers as fast as possible
     notifyObservers({.type = JobEvent::STARTED, .filename = _currentJob.filename});
-
-    // Count total lines for progress tracking
-    while (_currentJob.file.available())
-    {
-        _currentJob.file.readStringUntil('\n');
-        _currentJob.totalLines++;
-    }
-
-    // Close and reopen to reset read position
-    _currentJob.file.close();
-    _currentJob.file = _fileManager.openFileRead(PLOTTING_DIRECTORY + filename);
 
     _buzzer.playMelody(_jobStartMelody);
 }
@@ -139,6 +133,20 @@ uint32_t JobController::getCurrentLine() const
     size_t linesInQueue = _gcodeToken->messagesWaiting();
     if (linesInQueue > _currentJob.currentBufferLine) return 0;
     return _currentJob.currentBufferLine - linesInQueue;
+}
+
+uint32_t JobController::getTotalTimeSeconds() const
+{
+    if (!_active) return 0;
+    return _currentJob.totalTimeSeconds;
+}
+
+uint32_t JobController::getTimeRemainingSeconds() const
+{
+    if (!_active) return 0;
+    uint32_t elapsedSeconds = (millis() - _currentJob.jobStartTimeMS) / 1000;
+    if (elapsedSeconds >= _currentJob.totalTimeSeconds) return 0;
+    return _currentJob.totalTimeSeconds - elapsedSeconds;
 }
 
 double JobController::getProgress() const

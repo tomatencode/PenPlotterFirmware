@@ -122,6 +122,20 @@ void SettingPersistence::setTravelFeedRate_mm_per_s(float value) {
     notifyObservers(Setting::TravelFeedRate);
 }
 
+void SettingPersistence::setPenLiftTime_s(float value) {
+    const float clamped = std::clamp(value, MIN_PEN_LIFT_TIME_S, MAX_PEN_LIFT_TIME_S);
+    persist("penLiftTime", clamped);
+    _runtimeSettings.setPenLiftTime_s(clamped);
+    notifyObservers(Setting::PenLiftTime);
+}
+
+void SettingPersistence::setMinFeatureSize_mm(float value) {
+    const float clamped = std::clamp(value, MIN_MIN_FEATURE_SIZE_MM, MAX_MIN_FEATURE_SIZE_MM);
+    persist("minFeature", clamped);
+    _runtimeSettings.setMinFeatureSize_mm(clamped);
+    notifyObservers(Setting::MinFeatureSize);
+}
+
 void SettingPersistence::setHomingSpeed_stp_per_s(float value) {
     const float clamped = std::clamp(value, MIN_HOMING_SPEED_STP_PER_S, MAX_HOMING_SPEED_STP_PER_S);
     persist("homingSpeed", clamped);
@@ -226,6 +240,10 @@ void SettingPersistence::loadSettings() {
         prefs.getFloat("drawFeed", FEED_RATE_DRAW_MM_PER_S), MIN_DRAW_FEED_RATE_MM_PER_S, MAX_DRAW_FEED_RATE_MM_PER_S));
     _runtimeSettings.setTravelFeedRate_mm_per_s(std::clamp(
         prefs.getFloat("travelFeed", FEED_RATE_TRAVEL_MM_PER_S), MIN_TRAVEL_FEED_RATE_MM_PER_S, MAX_TRAVEL_FEED_RATE_MM_PER_S));
+    _runtimeSettings.setPenLiftTime_s(std::clamp(
+        prefs.getFloat("penLiftTime", PEN_LIFT_TIME_S), MIN_PEN_LIFT_TIME_S, MAX_PEN_LIFT_TIME_S));
+    _runtimeSettings.setMinFeatureSize_mm(std::clamp(
+        prefs.getFloat("minFeature", MIN_FEATURE_SIZE_MM), MIN_MIN_FEATURE_SIZE_MM, MAX_MIN_FEATURE_SIZE_MM));
     _runtimeSettings.setHomingSpeed_stp_per_s(std::clamp(
         prefs.getFloat("homingSpeed", HOMING_SPEED_STP_PER_S), MIN_HOMING_SPEED_STP_PER_S, MAX_HOMING_SPEED_STP_PER_S));
     _runtimeSettings.setHomingBackOffSpeed_stp_per_s(std::clamp(

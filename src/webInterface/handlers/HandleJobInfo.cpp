@@ -1,5 +1,6 @@
 #include "../WebInterface.hpp"
 #include "config/DirectoriesConfig.hpp"
+#include "jobController/JobStatsCalculator.hpp"
 
 void WebInterface::handleGetFileInfo() {
     if (!_httpServer.hasArg("file"))
@@ -21,19 +22,11 @@ void WebInterface::handleGetFileInfo() {
         return;
     }
 
-    int totalLines = 0;
-    File file = _fileManager.openFileRead(PLOTTING_DIRECTORY + filename);
-    if (file) {
-        while (file.available()) {
-            if (file.read() == '\n') {
-                totalLines++;
-            }
-        }
-        file.close();
-    }
+    auto stats = calculateStats(_fileManager, _runtimeSettings, PLOTTING_DIRECTORY + filename);
 
     std::string jsonResponse = "{";
-    jsonResponse += "\"lines\":" + std::to_string(totalLines) + ",";
+    jsonResponse += "\"lines\":" + std::to_string(stats.totalLines) + ",";
+    jsonResponse += "\"timeSeconds\":" + std::to_string(stats.totalTimeSeconds) + ",";
     jsonResponse += "\"sizeBytes\":" + std::to_string(_fileManager.getFileSize(PLOTTING_DIRECTORY + filename));
     jsonResponse += "}";
 

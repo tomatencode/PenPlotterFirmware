@@ -22,6 +22,8 @@
 
 #include "config/DirectoriesConfig.hpp"
 
+#include "jobController/JobStatsCalculator.hpp"
+
 namespace ui {
 namespace screens {
 
@@ -114,8 +116,8 @@ public:
                                 return formatFileSize(size);
                             }),
 
-                            std::make_unique<widgets::Label>([]() {
-                                size_t plotTimeSeconds = 120;
+                            std::make_unique<widgets::Label>([filename, ctx]() {
+                                size_t plotTimeSeconds = calculateStats(ctx.fileManager, ctx.runtimeSettings, PLOTTING_DIRECTORY + filename).totalTimeSeconds;
                                 return formatPlotTime(plotTimeSeconds);
                             })
                         )

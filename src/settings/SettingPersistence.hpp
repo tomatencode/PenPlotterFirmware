@@ -28,6 +28,8 @@ public:
     void setMicrosteps(float value);
     void setDrawFeedRate_mm_per_s(float value);
     void setTravelFeedRate_mm_per_s(float value);
+    void setPenLiftTime_s(float value);
+    void setMinFeatureSize_mm(float value);
     void setHomingSpeed_stp_per_s(float value);
     void setStallguardThreshold(float value);
     void setHomingBackOffSpeed_stp_per_s(float value);

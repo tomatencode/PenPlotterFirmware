@@ -19,6 +19,7 @@ public:
     float microsteps() const { return _microsteps.load(std::memory_order_relaxed); }
     float drawFeedRate_mm_per_s() const { return _drawFeedRate_mm_per_s.load(std::memory_order_relaxed); }
     float travelFeedRate_mm_per_s() const { return _travelFeedRate_mm_per_s.load(std::memory_order_relaxed); }
+    float penLiftTime_s() const { return _penLiftTime_s.load(std::memory_order_relaxed); }
     float minFeatureSize_mm() const { return _minFeatureSize_mm.load(std::memory_order_relaxed); }
     float homingSpeed_stp_per_s() const { return _homingSpeed_stp_per_s.load(std::memory_order_relaxed); }
     float homingBackOffSpeed_stp_per_s() const { return _homingBackOffSpeed_stp_per_s.load(std::memory_order_relaxed); }
@@ -46,6 +47,7 @@ private:
     void setMicrosteps(float v) { _microsteps.store(v, std::memory_order_relaxed); }
     void setDrawFeedRate_mm_per_s(float v) { _drawFeedRate_mm_per_s.store(v, std::memory_order_relaxed); }
     void setTravelFeedRate_mm_per_s(float v) { _travelFeedRate_mm_per_s.store(v, std::memory_order_relaxed); }
+    void setPenLiftTime_s(float v) { _penLiftTime_s.store(v, std::memory_order_relaxed); }
     void setMinFeatureSize_mm(float v) { _minFeatureSize_mm.store(v, std::memory_order_relaxed); }
     void setHomingSpeed_stp_per_s(float v) { _homingSpeed_stp_per_s.store(v, std::memory_order_relaxed); }
     void setStallguardThreshold(float v) { _stallguardThreshold.store(v, std::memory_order_relaxed); }
@@ -65,6 +67,7 @@ private:
     std::atomic<float> _microsteps{MICROSTEPS};
     std::atomic<float> _drawFeedRate_mm_per_s{FEED_RATE_DRAW_MM_PER_S};
     std::atomic<float> _travelFeedRate_mm_per_s{FEED_RATE_TRAVEL_MM_PER_S};
+    std::atomic<float> _penLiftTime_s{PEN_LIFT_TIME_S}; // default pen lift time in seconds
     std::atomic<float> _minFeatureSize_mm{MIN_FEATURE_SIZE_MM};
     std::atomic<float> _homingSpeed_stp_per_s{HOMING_SPEED_STP_PER_S};
     std::atomic<float> _stallguardThreshold{STALLGUARD_THRESHOLD};

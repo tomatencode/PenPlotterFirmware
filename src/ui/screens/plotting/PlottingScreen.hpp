@@ -49,8 +49,9 @@ public:
                 }
             }),
 
+
             std::make_unique<widgets::Label>([&jc = ctx.jobController]() {
-                return std::to_string(jc.getCurrentLine()) + "/" + std::to_string(jc.getTotalLines());
+                return "-" + std::to_string(jc.getTimeRemainingSeconds()) + "s";
             }),
 
             std::make_unique<widgets::Conditional>(
