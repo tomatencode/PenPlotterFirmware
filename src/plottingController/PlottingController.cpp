@@ -8,10 +8,11 @@
 
 static const char* TAG = "PlottingController";
 
-PlottingController::PlottingController(MotionState& motionState, RtosQueue<GcodeMessage>& gcodeQueue, SettingPersistence& settingsPersistence, RuntimeSettings& runtimeSettings)
+PlottingController::PlottingController(MotionState& motionState, MotionCommand& motionCommand, RtosQueue<GcodeMessage>& gcodeQueue, SettingPersistence& settingsPersistence, RuntimeSettings& runtimeSettings)
     : SettingObserver({Setting::DriverCurrent, Setting::Microsteps, Setting::StallguardThreshold}),
     
     _motionState(motionState),
+    _motionCommand(motionCommand),
     _gcodeQueue(gcodeQueue),
     _settingPersistence(settingsPersistence),
     _runtimeSettings(runtimeSettings),
@@ -38,14 +39,15 @@ PlottingController::PlottingController(MotionState& motionState, RtosQueue<Gcode
         _driverA,
         _driverB,
         motionState,
+        motionCommand,
         runtimeSettings
     ),
 
     _kinematics(STEPS_PER_MM),
 
-    _bezierExecuter(_axisA, _axisB, _kinematics, motionState),
+    _bezierExecuter(_axisA, _axisB, _kinematics, motionState, motionCommand),
 
-    _motionExecuter(_bezierExecuter, motionState, runtimeSettings),
+    _motionExecuter(_bezierExecuter, motionCommand, runtimeSettings),
 
     _gcodeExecuter(
         _motionExecuter,
@@ -94,7 +96,7 @@ void PlottingController::update()
 {
     auto msg = _gcodeQueue.tryReceive(0);
 
-    if (msg.has_value() && _motionState.getCommand() != MotionCommand::ABORT)
+    if (msg.has_value() && _motionCommand.getCommand() != MotionCommandType::ABORT)
     {
         _motionState.setState(MotionStateType::RUNNING);
 
@@ -105,7 +107,7 @@ void PlottingController::update()
     }
     else
     {
-        if (_motionState.getCommand() == MotionCommand::ABORT) {
+        if (_motionCommand.getCommand() == MotionCommandType::ABORT) {
             _pen.up();
         }
         _motionState.setState(MotionStateType::IDLE);

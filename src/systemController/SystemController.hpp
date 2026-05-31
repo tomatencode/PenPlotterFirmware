@@ -12,6 +12,7 @@
 #include "ui/framework/renderer/Renderer.hpp"
 #include "ui/screens/ScreensContext.hpp"
 #include "rtos/MotionState.hpp"
+#include "rtos/MotionCommand.hpp"
 #include "rtos/RtosQueue.hpp"
 #include "rtos/GcodeMessage.hpp"
 #include "settings/SettingPersistence.hpp"
@@ -20,7 +21,7 @@
 class SystemController
 {
 public:
-    SystemController(MotionState& motionState, RtosQueue<GcodeMessage>& gcodeQueue,
+    SystemController(MotionState& motionState, MotionCommand& motionCommand, RtosQueue<GcodeMessage>& gcodeQueue,
                        SettingPersistence& settingPersistence, RuntimeSettings& runtimeSettings);
     
     void init();

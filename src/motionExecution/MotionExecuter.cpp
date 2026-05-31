@@ -4,8 +4,8 @@
 #include <Arduino.h>
 
 
-MotionExecuter::MotionExecuter(BezierExecuter& bezierExecuter, MotionState& motionState, RuntimeSettings& runtimeSettings)
-    : _bezierExecuter(bezierExecuter), _motionState(motionState), _runtimeSettings(runtimeSettings)
+MotionExecuter::MotionExecuter(BezierExecuter& bezierExecuter, MotionCommand& motionCommand, RuntimeSettings& runtimeSettings)
+    : _bezierExecuter(bezierExecuter), _motionCommand(motionCommand), _runtimeSettings(runtimeSettings)
     {}
 
 XYPos MotionExecuter::getCurrentPos() const {
@@ -62,7 +62,7 @@ void MotionExecuter::arcToXY(
         LineToXY({x, y}, mm_per_s); // Move to the calculated position
 
         // Check for abort
-        if (_motionState.getCommand() == MotionCommand::ABORT)
+        if (_motionCommand.getCommand() == MotionCommandType::ABORT)
         {
             return; // Exit the motion loop immediately on abort
         }
@@ -114,7 +114,7 @@ void MotionExecuter::quadraticBezierToXY(
         t0 = t1;
 
         // Check for abort
-        if (_motionState.getCommand() == MotionCommand::ABORT)
+        if (_motionCommand.getCommand() == MotionCommandType::ABORT)
         {
             return; // Exit the motion loop immediately on abort
         }
@@ -190,7 +190,7 @@ void MotionExecuter::cubicBezierToXY(
         t0 = t1;
 
         // Check for abort
-        if (_motionState.getCommand() == MotionCommand::ABORT)
+        if (_motionCommand.getCommand() == MotionCommandType::ABORT)
         {
             return; // Exit the motion loop immediately on abort
         }

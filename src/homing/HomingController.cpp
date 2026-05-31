@@ -4,24 +4,24 @@
 
 static const char* TAG = "HomingController";
 
-HomingController::HomingController(StepperAxis& axisA, StepperAxis& axisB, MotorDriver& driverA, MotorDriver& driverB, MotionState& motionState, RuntimeSettings& runtimeSettings)
-    : _axisA(axisA), _axisB(axisB), _driverA(driverA), _driverB(driverB), _motionState(motionState), _runtimeSettings(runtimeSettings) {}
+HomingController::HomingController(StepperAxis& axisA, StepperAxis& axisB, MotorDriver& driverA, MotorDriver& driverB, MotionState& motionState, MotionCommand& motionCommand, RuntimeSettings& runtimeSettings)
+    : _axisA(axisA), _axisB(axisB), _driverA(driverA), _driverB(driverB), _motionState(motionState), _motionCommand(motionCommand), _runtimeSettings(runtimeSettings) {}
 
 // Handle pause/abort during movement; return true if homing should be aborted
 bool HomingController::checkPauseAbort() {
-    if (_motionState.getCommand() == MotionCommand::PAUSE) {
+    if (_motionCommand.getCommand() == MotionCommandType::PAUSE) {
         _driverA.setSpeed(0);
         _driverB.setSpeed(0);
         _motionState.setState(MotionStateType::PAUSED);
 
         ESP_LOGI(TAG, "Homing paused");
-        while (_motionState.getCommand() == MotionCommand::PAUSE) {
+        while (_motionCommand.getCommand() == MotionCommandType::PAUSE) {
             yield();
         }
         ESP_LOGI(TAG, "Homing resumed");
         _motionState.setState(MotionStateType::RUNNING);
         return false;  // Continue homing
-    } else if (_motionState.getCommand() == MotionCommand::ABORT) {
+    } else if (_motionCommand.getCommand() == MotionCommandType::ABORT) {
         ESP_LOGI(TAG, "Homing aborted");
         _driverA.setSpeed(0);
         _driverB.setSpeed(0);
@@ -139,7 +139,7 @@ void HomingController::home() {
 
     // Move to X limit (both axes negative)
     moveToLimit(false, false, _runtimeSettings.backOffStepsX());
-    if (_motionState.getCommand() == MotionCommand::ABORT) return;
+    if (_motionCommand.getCommand() == MotionCommandType::ABORT) return;
 
     // Interruptible delay before moving to Y limit
     uint32_t delayStart = millis();
@@ -150,7 +150,7 @@ void HomingController::home() {
 
     // Move to Y limit (B axis positive)
     moveToLimit(false, true, _runtimeSettings.backOffStepsY());
-    if (_motionState.getCommand() == MotionCommand::ABORT) return;
+    if (_motionCommand.getCommand() == MotionCommandType::ABORT) return;
 
     // Zero both axes
     _axisA.setPositionSteps(0);

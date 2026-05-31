@@ -3,6 +3,7 @@
 #include "RtosQueue.hpp"
 #include "GcodeMessage.hpp"
 #include "MotionState.hpp"
+#include "MotionCommand.hpp"
 #include "systemController/SystemController.hpp"
 #include "plottingController/PlottingController.hpp"
 #include "settings/RuntimeSettings.hpp"
@@ -63,14 +64,15 @@ void startRtosTasks()
     size_t gcodeQueueSize = 32;
     static RtosQueue<GcodeMessage> gcodeQueue(gcodeQueueSize);
     static MotionState motionState;
+    static MotionCommand motionCommand;
     static RuntimeSettings runtimeSettings;
     static SettingPersistence settingPersistence(runtimeSettings);
     
     // Load settings from NVS at startup
     settingPersistence.init();
 
-    static SystemController appManager(motionState, gcodeQueue, settingPersistence, runtimeSettings);
-    static PlottingController plottingController(motionState, gcodeQueue, settingPersistence, runtimeSettings);
+    static SystemController appManager(motionState, motionCommand, gcodeQueue, settingPersistence, runtimeSettings);
+    static PlottingController plottingController(motionState, motionCommand, gcodeQueue, settingPersistence, runtimeSettings);
 
     // Plotting task (CORE 1)
     xTaskCreatePinnedToCore(

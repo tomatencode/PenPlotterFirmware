@@ -23,7 +23,7 @@ void JobController::start(const std::string& filename)
 
     auto stats = calculateStats(_fileManager, _runtimeSettings, PLOTTING_DIRECTORY + filename);
 
-    _motionState.setCommand(MotionCommand::NONE); // Clear any existing motion commands
+    _motionCommand.setCommand(MotionCommandType::NONE); // Clear any existing motion commands
     _currentJob.file = _fileManager.openFileRead(PLOTTING_DIRECTORY + filename);
 
     if (!_currentJob.file)
@@ -52,7 +52,7 @@ void JobController::pause()
     
     ESP_LOGI(TAG, "Pausing job");
     _currentJob.pauseStartTimeMS = millis();
-    _motionState.setCommand(MotionCommand::PAUSE);
+    _motionCommand.setCommand(MotionCommandType::PAUSE);
     notifyObservers({.type = JobEvent::PAUSED, .filename = _currentJob.filename});
 }
 
@@ -67,7 +67,7 @@ void JobController::resume()
         _currentJob.totalPausedMS += millis() - _currentJob.pauseStartTimeMS;
         _currentJob.pauseStartTimeMS = 0;
     }
-    _motionState.setCommand(MotionCommand::NONE);
+    _motionCommand.setCommand(MotionCommandType::NONE);
     notifyObservers({.type = JobEvent::RESUMED, .filename = _currentJob.filename});
 }
 
@@ -78,7 +78,7 @@ void JobController::abort()
     _buzzer.playMelody(_jobAbortMelody);
 
     ESP_LOGI(TAG, "Aborting job");
-    _motionState.setCommand(MotionCommand::ABORT);
+    _motionCommand.setCommand(MotionCommandType::ABORT);
     _gcodeToken->clearQueue();
 
     std::string filename = _currentJob.filename; // Capture filename before ending job
@@ -89,6 +89,12 @@ void JobController::abort()
 
 void JobController::update()
 {
+    if (_motionState.getState() == MotionStateType::IDLE
+        && _motionCommand.getCommand() == MotionCommandType::ABORT) {
+        // Clear abort command once we've come to a stop
+        _motionCommand.setCommand(MotionCommandType::NONE);
+    }
+
     if (!_active) return;
 
     // Check for completion

@@ -8,6 +8,7 @@
 #include "hardware/buzzer/Buzzer.hpp"
 #include "storage/FileManager.hpp"
 #include "rtos/MotionState.hpp"
+#include "rtos/MotionCommand.hpp"
 #include "settings/RuntimeSettings.hpp"
 #include "JobObserver.hpp"
 
@@ -26,11 +27,12 @@ struct PlotJob {
 
 class JobController {
 public:
-    JobController(GCodeSender& gcodeSender, MotionState& motionState, RuntimeSettings& runtimeSettings, FileManager& fileManager, Buzzer& buzzer)
+    JobController(GCodeSender& gcodeSender, MotionState& motionState, MotionCommand& motionCommand, RuntimeSettings& runtimeSettings, FileManager& fileManager, Buzzer& buzzer)
         : _currentJob(PlotJob()),
           _active(false),
           _gcodeSender(gcodeSender),
           _motionState(motionState),
+          _motionCommand(motionCommand),
           _runtimeSettings(runtimeSettings),
           _fileManager(fileManager),
           _buzzer(buzzer)
@@ -66,6 +68,7 @@ private:
     GCodeSender& _gcodeSender;
     std::optional<GCodeSender::Token> _gcodeToken;
     MotionState& _motionState;
+    MotionCommand& _motionCommand;
     RuntimeSettings& _runtimeSettings;
     FileManager& _fileManager;
     Buzzer& _buzzer;

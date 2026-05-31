@@ -9,7 +9,7 @@ const Buzzer::Melody startupMelody = {
     {330, 200}
 };
 
-SystemController::SystemController(MotionState& motionState, RtosQueue<GcodeMessage>& gcodeQueue,
+SystemController::SystemController(MotionState& motionState, MotionCommand& motionCommand, RtosQueue<GcodeMessage>& gcodeQueue,
                                        SettingPersistence& settingPersistence, RuntimeSettings& runtimeSettings)
     : _lcd(LCD_I2C_ADDRESS, LCD_COLS, LCD_ROWS),
       _display(_lcd),
@@ -17,7 +17,7 @@ SystemController::SystemController(MotionState& motionState, RtosQueue<GcodeMess
       _buzzer(BUZZER_PIN, 5),
       _gcodeSender(gcodeQueue),
       _fileManager(),
-      _jobController(_gcodeSender, motionState, runtimeSettings, _fileManager, _buzzer),
+      _jobController(_gcodeSender, motionState, motionCommand, runtimeSettings, _fileManager, _buzzer),
       _wifiController(settingPersistence, runtimeSettings),
       _webInterface(_jobController, _gcodeSender, motionState, _fileManager, _wifiController, settingPersistence, runtimeSettings),
       _router(),

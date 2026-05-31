@@ -15,6 +15,7 @@
 #include "gcode/GCodeExecuter.hpp"
 #include "gcode/GCodeParser.hpp"
 #include "rtos/MotionState.hpp"
+#include "rtos/MotionCommand.hpp"
 #include "rtos/RtosQueue.hpp"
 #include "rtos/GcodeMessage.hpp"
 
@@ -22,7 +23,7 @@
 class PlottingController : public SettingObserver
 {
 public:
-    PlottingController(MotionState& motionState, RtosQueue<GcodeMessage>& gcodeQueue, SettingPersistence& settingsPersistence, RuntimeSettings& runtimeSettings);
+    PlottingController(MotionState& motionState, MotionCommand& motionCommand, RtosQueue<GcodeMessage>& gcodeQueue, SettingPersistence& settingsPersistence, RuntimeSettings& runtimeSettings);
     ~PlottingController();
 
     void init();
@@ -69,6 +70,7 @@ private:
 
     // State and communication
     MotionState& _motionState;
+    MotionCommand& _motionCommand;
     RtosQueue<GcodeMessage>& _gcodeQueue;
     RuntimeSettings& _runtimeSettings;
     SettingPersistence& _settingPersistence;

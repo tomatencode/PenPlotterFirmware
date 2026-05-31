@@ -3,13 +3,6 @@
 #include <atomic>
 #include <optional>
 
-enum class MotionCommand
-{
-    NONE = 0,
-    PAUSE = 1,
-    ABORT = 2
-};
-
 enum class MotionStateType
 {
     IDLE = 0,
@@ -19,15 +12,7 @@ enum class MotionStateType
 
 class MotionState {
 public:
-    void setCommand(MotionCommand cmd) { _command.store(cmd); }
-    MotionCommand getCommand() const { return _command.load(); }
-
-    void setState(MotionStateType newState) {
-        _state.store(newState);
-        if (newState == MotionStateType::IDLE && _command.load() == MotionCommand::ABORT) {
-            _command.store(MotionCommand::NONE); // Clear abort command when we return to idle
-        }
-    }
+    void setState(MotionStateType newState) { _state.store(newState); }
     MotionStateType getState() const { return _state.load(); }
 
     void setMachineX(float x) { _machineX.store(x); }
@@ -44,7 +29,6 @@ public:
     }
 
 private:
-    std::atomic<MotionCommand> _command = MotionCommand::NONE;
     std::atomic<MotionStateType> _state = MotionStateType::IDLE;
 
     std::atomic<float> _machineX = 0.0f;

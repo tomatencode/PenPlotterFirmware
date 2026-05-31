@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <Arduino.h>
 
-BezierExecuter::BezierExecuter(StepperAxis& axisA, StepperAxis& axisB, CoreXYKinematics& kinematics, MotionState& motionState)
-    : _axisA(axisA), _axisB(axisB), _kinematics(kinematics), _motionState(motionState) {}
+BezierExecuter::BezierExecuter(StepperAxis& axisA, StepperAxis& axisB, CoreXYKinematics& kinematics, MotionState& motionState, MotionCommand& motionCommand)
+    : _axisA(axisA), _axisB(axisB), _kinematics(kinematics), _motionState(motionState), _motionCommand(motionCommand) {}
 
 XYPos BezierExecuter::getCurrentPos() const {
     MotorSteps steps = {_axisA.positionSteps(), _axisB.positionSteps()};
@@ -70,15 +70,15 @@ void BezierExecuter::bezierTo(const XYPos& targetPos, double mm_per_s, bool clip
             yield();
         }
 
-        if (_motionState.getCommand() == MotionCommand::PAUSE) {
+        if (_motionCommand.getCommand() == MotionCommandType::PAUSE) {
             _motionState.setState(MotionStateType::PAUSED);
-            while (_motionState.getCommand() == MotionCommand::PAUSE) {
+            while (_motionCommand.getCommand() == MotionCommandType::PAUSE) {
                 yield();
             }
             _motionState.setState(MotionStateType::RUNNING);
             next_step_time = micros(); // Reset so pause duration doesn't cause a step burst on resume
         }
-        else if (_motionState.getCommand() == MotionCommand::ABORT) {
+        else if (_motionCommand.getCommand() == MotionCommandType::ABORT) {
             return;
         }
 

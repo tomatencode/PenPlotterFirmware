@@ -3,13 +3,13 @@
 #include <cstdint>
 
 #include "BezierExecuter.hpp"
-#include "rtos/MotionState.hpp"
+#include "rtos/MotionCommand.hpp"
 #include "settings/RuntimeSettings.hpp"
 
 
 class MotionExecuter {
     public:
-        MotionExecuter(BezierExecuter& bezierExecuter, MotionState& motionState, RuntimeSettings& runtimeSettings);
+        MotionExecuter(BezierExecuter& bezierExecuter, MotionCommand& motionCommand, RuntimeSettings& runtimeSettings);
 
         void LineToXY(
             const XYPos& targetPos,
@@ -37,6 +37,6 @@ class MotionExecuter {
 
     private:
         BezierExecuter& _bezierExecuter;
-        MotionState& _motionState;
+        MotionCommand& _motionCommand;
         RuntimeSettings& _runtimeSettings;
 };
