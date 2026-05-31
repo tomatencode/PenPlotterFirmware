@@ -94,8 +94,10 @@ void GCodeExecuter::handleCUBIC(const std::map<char,double>& params) {
 void GCodeExecuter::handlePenUpDown(const std::string& cmd) {
     if (cmd == "M3") {
         _pen.down();
+        delay(100); // Small delay to allow pen to move down before starting motion
     } else if (cmd == "M5") {
         _pen.up();
+        delay(100); // Small delay to allow pen to move up before starting motion
     } else {
         ESP_LOGW(TAG, "Unknown pen command: %s", cmd.c_str());
     }
