@@ -51,6 +51,7 @@ void JobController::pause()
     _buzzer.playMelody(_jobPauseMelody);
     
     ESP_LOGI(TAG, "Pausing job");
+    _currentJob.pauseStartTimeMS = millis();
     _motionState.setCommand(MotionCommand::PAUSE);
     notifyObservers({.type = JobEvent::PAUSED, .filename = _currentJob.filename});
 }
@@ -62,6 +63,10 @@ void JobController::resume()
     _buzzer.playMelody(_jobResumeMelody);
 
     ESP_LOGI(TAG, "Resuming job");
+    if (_currentJob.pauseStartTimeMS != 0) {
+        _currentJob.totalPausedMS += millis() - _currentJob.pauseStartTimeMS;
+        _currentJob.pauseStartTimeMS = 0;
+    }
     _motionState.setCommand(MotionCommand::NONE);
     notifyObservers({.type = JobEvent::RESUMED, .filename = _currentJob.filename});
 }
@@ -144,7 +149,9 @@ uint32_t JobController::getTotalTimeSeconds() const
 uint32_t JobController::getTimeRemainingSeconds() const
 {
     if (!_active) return 0;
-    uint32_t elapsedSeconds = (millis() - _currentJob.jobStartTimeMS) / 1000;
+    uint32_t pausedMS = _currentJob.totalPausedMS;
+    if (_currentJob.pauseStartTimeMS != 0) pausedMS += millis() - _currentJob.pauseStartTimeMS; // currently paused
+    uint32_t elapsedSeconds = (millis() - _currentJob.jobStartTimeMS - pausedMS) / 1000;
     if (elapsedSeconds >= _currentJob.totalTimeSeconds) return 0;
     return _currentJob.totalTimeSeconds - elapsedSeconds;
 }

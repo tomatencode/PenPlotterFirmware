@@ -20,6 +20,8 @@ struct PlotJob {
 
     uint32_t totalTimeSeconds = 0;
     uint32_t jobStartTimeMS = 0;
+    uint32_t totalPausedMS = 0;
+    uint32_t pauseStartTimeMS = 0;
 };
 
 class JobController {
