@@ -41,7 +41,8 @@ std::string WebInterface::buildStateJson() {
         "\"jobFile\":\"%s\"," 
         "\"jobProgress\":%.4f,"
         "\"jobLine\":%u,"
-        "\"jobTotalLines\":%u"
+        "\"jobTotalLines\":%u,"
+        "\"jobRemainingSeconds\":%u"
         "}",
         _motionState.getMachineX(),
         _motionState.getMachineY(),
@@ -52,7 +53,8 @@ std::string WebInterface::buildStateJson() {
         _jobController.getCurrentFile().c_str(),
         (float)_jobController.getProgress(),
         (unsigned int)_jobController.getCurrentLine(),
-        (unsigned int)_jobController.getTotalLines()
+        (unsigned int)_jobController.getTotalLines(),
+        (unsigned int)_jobController.getTimeRemainingSeconds()
     );
     return buf;
 }
