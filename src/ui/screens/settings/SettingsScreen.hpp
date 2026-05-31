@@ -62,6 +62,10 @@ public:
                     std::make_unique<widgets::Label>("Name & DNS")
                 ),
 
+                /*
+
+                currently hidden as the hardware for pen slots is not yet implemented
+                
                 std::make_unique<widgets::Button>(
                     widgets::ButtonProps{
                         .style = styles::listButtonStyle,
@@ -74,6 +78,8 @@ public:
                     },
                     std::make_unique<widgets::Label>("Pen Slots")
                 ),
+
+                */
                 
                 std::make_unique<widgets::Button>(
                     widgets::ButtonProps{
