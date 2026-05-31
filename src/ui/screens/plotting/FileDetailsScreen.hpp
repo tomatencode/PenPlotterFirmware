@@ -111,15 +111,9 @@ public:
                                 .horizontalAlign = widgets::HorizontalAlignment::Center,
                             },
 
-                            std::make_unique<widgets::Label>([filename, &fm = ctx.fileManager]() {
-                                size_t size = fm.getFileSize(PLOTTING_DIRECTORY + filename);
-                                return formatFileSize(size);
-                            }),
+                            std::make_unique<widgets::Label>([this]() { return _cachedSize; }),
 
-                            std::make_unique<widgets::Label>([filename, ctx]() {
-                                size_t plotTimeSeconds = calculateStats(ctx.fileManager, ctx.runtimeSettings, PLOTTING_DIRECTORY + filename).totalTimeSeconds;
-                                return formatPlotTime(plotTimeSeconds);
-                            })
+                            std::make_unique<widgets::Label>([this]() { return _cachedPlotTime; })
                         )
                     )
                 )
@@ -143,7 +137,16 @@ public:
             )
         )
     , 1)
+    , _filename(filename)
+    , _ctx(ctx)
     {}
+
+    void onEnter() override {
+        _cachedSize = formatFileSize(_ctx.fileManager.getFileSize(PLOTTING_DIRECTORY + _filename));
+        _cachedPlotTime = formatPlotTime(
+            calculateStats(_ctx.fileManager, _ctx.runtimeSettings, PLOTTING_DIRECTORY + _filename).totalTimeSeconds
+        );
+    }
 
     void onUnPause() override {
         if (router()) {
@@ -152,6 +155,12 @@ public:
             router()->popScreen();
         }
     }
+
+private:
+    std::string _filename;
+    const ScreensContext& _ctx;
+    std::string _cachedSize;
+    std::string _cachedPlotTime;
 };
 
 } // namespace screens
