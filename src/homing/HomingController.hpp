@@ -1,10 +1,8 @@
 #pragma once
 
 #include "../motionExecution/StepperAxis.hpp"
+#include "settings/RuntimeSettings.hpp"
 #include "rtos/MotionState.hpp"
-
-// Forward declaration
-class RuntimeSettings;
 
 class HomingController {
 public:
