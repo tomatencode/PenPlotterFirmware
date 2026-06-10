@@ -32,6 +32,7 @@ void WebInterface::init() {
     _httpServer.on("/plotFiles", HTTP_DELETE, [this]() { handleDeleteJob(); });
     _httpServer.on("/plotFiles", HTTP_GET,  [this]() { handleListJobs(); });
     _httpServer.on("/fileInfo", HTTP_GET,  [this]() { handleGetFileInfo(); });
+    _httpServer.on("/downloadJob", HTTP_GET, [this]() { handleDownloadJob(); });
     _httpServer.on("/start", HTTP_POST, [this]() { handleStartJob(); });
     _httpServer.on("/abort", HTTP_POST, [this]() { handleAbortJob(); });
     _httpServer.on("/pause", HTTP_POST, [this]() { handlePauseJob(); });
