@@ -15,8 +15,8 @@ RotaryEncoder::RotaryEncoder(uint8_t dt, uint8_t clk, uint8_t sw, uint16_t debou
 
 void RotaryEncoder::begin()
 {
-    pinMode(_dt, INPUT_PULLUP);
-    pinMode(_clk, INPUT_PULLUP);
+    pinMode(_dt, INPUT);
+    pinMode(_clk, INPUT);
     pinMode(_sw, INPUT_PULLUP);
 
     _state = (digitalRead(_clk) << 1) | digitalRead(_dt);
