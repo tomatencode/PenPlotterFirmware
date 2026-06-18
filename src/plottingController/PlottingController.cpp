@@ -43,7 +43,7 @@ PlottingController::PlottingController(MotionState& motionState, MotionCommand& 
         runtimeSettings
     ),
 
-    _kinematics(STEPS_PER_MM),
+    _kinematics(STEPS_PER_MM, SWAP_XY, INVERT_X, INVERT_Y),
 
     _bezierExecuter(_axisA, _axisB, _kinematics, motionState, motionCommand),
 
