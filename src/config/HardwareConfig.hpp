@@ -8,5 +8,5 @@ constexpr bool INVERT_X = true;
 constexpr bool INVERT_Y = false;
 
 // Workspace
-constexpr float MAX_X_MM = 185.0f;
-constexpr float MAX_Y_MM = 265.0f;
+constexpr float MAX_X_MM = 205.0f;
+constexpr float MAX_Y_MM = 285.0f;
