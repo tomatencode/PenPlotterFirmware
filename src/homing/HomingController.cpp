@@ -4,8 +4,8 @@
 
 static const char* TAG = "HomingController";
 
-HomingController::HomingController(StepperAxis& axisA, StepperAxis& axisB, MotorDriver& driverA, MotorDriver& driverB, MotionState& motionState, MotionCommand& motionCommand, RuntimeSettings& runtimeSettings)
-    : _axisA(axisA), _axisB(axisB), _driverA(driverA), _driverB(driverB), _motionState(motionState), _motionCommand(motionCommand), _runtimeSettings(runtimeSettings) {}
+HomingController::HomingController(StepperAxis& axisA, StepperAxis& axisB, MotorDriver& driverA, MotorDriver& driverB, MotionState& motionState, MotionCommand& motionCommand, RuntimeSettings& runtimeSettings, CoreXYKinematics& kinematics)
+    : _axisA(axisA), _axisB(axisB), _driverA(driverA), _driverB(driverB), _motionState(motionState), _motionCommand(motionCommand), _runtimeSettings(runtimeSettings), _kinematics(kinematics) {}
 
 // Handle pause/abort during movement; return true if homing should be aborted
 bool HomingController::checkPauseAbort() {
@@ -137,8 +137,12 @@ void HomingController::home() {
         return;
     }
 
-    // Move to X limit (both axes negative)
-    moveToLimit(false, false, _runtimeSettings.backOffStepsX());
+    // Compute motor directions toward each limit using the configured coordinate system
+    MotorSteps xLimitDir = _kinematics.mmToSteps({-1.0, 0.0});
+    MotorSteps yLimitDir = _kinematics.mmToSteps({0.0, -1.0});
+
+    // Move to X limit
+    moveToLimit(xLimitDir.a >= 0, xLimitDir.b >= 0, _runtimeSettings.backOffStepsX());
     if (_motionCommand.getCommand() == MotionCommandType::ABORT) return;
 
     // Interruptible delay before moving to Y limit
@@ -148,8 +152,8 @@ void HomingController::home() {
         yield();
     }
 
-    // Move to Y limit (B axis positive)
-    moveToLimit(false, true, _runtimeSettings.backOffStepsY());
+    // Move to Y limit
+    moveToLimit(yLimitDir.a >= 0, yLimitDir.b >= 0, _runtimeSettings.backOffStepsY());
     if (_motionCommand.getCommand() == MotionCommandType::ABORT) return;
 
     // Zero both axes

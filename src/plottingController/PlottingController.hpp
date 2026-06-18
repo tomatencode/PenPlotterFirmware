@@ -58,9 +58,9 @@ private:
 
     Pen _pen;
 
-    HomingController _homingController;
-
     CoreXYKinematics _kinematics;
+
+    HomingController _homingController;
 
     BezierExecuter _bezierExecuter;
 

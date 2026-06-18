@@ -33,6 +33,8 @@ PlottingController::PlottingController(MotionState& motionState, MotionCommand& 
 
     _pen(_penServo, motionState, settingsPersistence, runtimeSettings),
 
+    _kinematics(STEPS_PER_MM, SWAP_XY, INVERT_X, INVERT_Y),
+
     _homingController(
         _axisA,
         _axisB,
@@ -40,10 +42,9 @@ PlottingController::PlottingController(MotionState& motionState, MotionCommand& 
         _driverB,
         motionState,
         motionCommand,
-        runtimeSettings
+        runtimeSettings,
+        _kinematics
     ),
-
-    _kinematics(STEPS_PER_MM, SWAP_XY, INVERT_X, INVERT_Y),
 
     _bezierExecuter(_axisA, _axisB, _kinematics, motionState, motionCommand),
 
