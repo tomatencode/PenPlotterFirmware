@@ -1,7 +1,15 @@
 #include "../WebInterface.hpp"
 #include "config/DirectoriesConfig.hpp"
+#include <esp_log.h>
 
-static const char* TAG = "WebInterface";
+static const char* TAG = "HandleDownload";
+static constexpr size_t DOWNLOAD_BUFFER_SIZE = 4096;
+
+// WebServer handlers run synchronously on SystemTask, so this is not shared
+// between concurrent requests. Keeping it static avoids exhausting that task's
+// 6 KiB stack while the filesystem and TCP call stacks are active.
+static uint8_t downloadBuffer[DOWNLOAD_BUFFER_SIZE];
+
 
 void WebInterface::handleDownloadJob() {
     if (!_httpServer.hasArg("file"))
@@ -31,46 +39,79 @@ void WebInterface::handleDownloadJob() {
         return;
     }
 
-    _httpServer.setContentLength(file.size());
+    const size_t expected = file.size();
+    _httpServer.setContentLength(expected);
     _httpServer.sendHeader("Content-Disposition", ("attachment; filename=\"" + filename + "\"").c_str());
     _httpServer.send(200, "application/octet-stream", "");
 
-    const size_t expected = file.size();
-    size_t totalSent = 0;
-    uint8_t buffer[1460];                 // 1× TCP MSS; still safe on the task stack
+    // handleClient() sets this to HTTP_MAX_SEND_WAIT (5 s) before dispatching.
+    // A multi-MB body legitimately takes longer, so widen it for this request.
     WiFiClient client = _httpServer.client();
+    client.setTimeout(0); // non-blocking: we do our own waiting below
 
-    while (true)
+    size_t totalSent = 0;
+    bool aborted = false;
+    unsigned long lastYieldMs = millis();
+
+    while (totalSent < expected)
     {
-        if (!client.connected())
-            break;                        // peer aborted (app cancels superseded downloads)
+        const size_t want = (expected - totalSent) < DOWNLOAD_BUFFER_SIZE
+                          ? (expected - totalSent)
+                          : DOWNLOAD_BUFFER_SIZE;
 
-        size_t bytesRead = file.read(buffer, sizeof(buffer));
+        const size_t bytesRead = file.read(downloadBuffer, want);
         if (bytesRead == 0)
-            break;                        // EOF
+            break; // EOF (file shorter than advertised)
 
-        // write() may return a short count — never drop bytes silently.
         size_t written = 0;
         while (written < bytesRead)
         {
-            size_t n = client.write(buffer + written, bytesRead - written);
-            if (n == 0)
+            const size_t n = client.write(downloadBuffer + written, bytesRead - written);
+            if (n > 0)
             {
-                // Peer gone or socket wedged: kill the connection so the client
-                // sees a clean truncation error (and retries) instead of waiting
-                // forever for the promised Content-Length bytes.
-                client.stop();
-                file.close();
-                return;
+                written += n;
+                continue;
             }
-            written += n;
+
+            if (!client.connected())
+            {
+                // Genuinely gone: the app cancelled this preview, or the host
+                // dropped us. Stop reading the file.
+                aborted = true;
+                break;
+            }
+
+            vTaskDelay(1); // socket full — back off, stay connected
         }
+
+        if (aborted)
+            break;
+
         totalSent += written;
 
-        vTaskDelay(1);                    // keep: feeds the idle-task watchdog
+        // Yield in ~10 ms batches. Frequent enough to stay far inside the 5 s
+        // watchdog, rare enough that throughput no longer scales with delay.
+        const unsigned long now = millis();
+        if (now - lastYieldMs >= 10)
+        {
+            vTaskDelay(1);
+            lastYieldMs = millis();
+        }
     }
+
     file.close();
 
-    if (totalSent != expected)
+    if (totalSent < expected && !client.connected())
+    {
+        ESP_LOGW(TAG, "Download of \"%s\" aborted by peer at %u/%u bytes",
+                 filename.c_str(), (unsigned)totalSent, (unsigned)expected);
+        return;
+    }
+
+    if (totalSent < expected)
+    {
+        ESP_LOGW(TAG, "Download of \"%s\" truncated at %u/%u bytes",
+                 filename.c_str(), (unsigned)totalSent, (unsigned)expected);
         client.stop();
+    }
 }
