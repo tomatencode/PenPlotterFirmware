@@ -35,13 +35,42 @@ void WebInterface::handleDownloadJob() {
     _httpServer.sendHeader("Content-Disposition", ("attachment; filename=\"" + filename + "\"").c_str());
     _httpServer.send(200, "application/octet-stream", "");
 
-    // Stream the file content
-    uint8_t buffer[512];
-    size_t bytesRead;
-    while ((bytesRead = file.read(buffer, sizeof(buffer))) > 0)
+    const size_t expected = file.size();
+    size_t totalSent = 0;
+    uint8_t buffer[1460];                 // 1× TCP MSS; still safe on the task stack
+    WiFiClient client = _httpServer.client();
+
+    while (true)
     {
-        _httpServer.client().write(buffer, bytesRead);
-        vTaskDelay(1); // Yield to allow other tasks to run
+        if (!client.connected())
+            break;                        // peer aborted (app cancels superseded downloads)
+
+        size_t bytesRead = file.read(buffer, sizeof(buffer));
+        if (bytesRead == 0)
+            break;                        // EOF
+
+        // write() may return a short count — never drop bytes silently.
+        size_t written = 0;
+        while (written < bytesRead)
+        {
+            size_t n = client.write(buffer + written, bytesRead - written);
+            if (n == 0)
+            {
+                // Peer gone or socket wedged: kill the connection so the client
+                // sees a clean truncation error (and retries) instead of waiting
+                // forever for the promised Content-Length bytes.
+                client.stop();
+                file.close();
+                return;
+            }
+            written += n;
+        }
+        totalSent += written;
+
+        vTaskDelay(1);                    // keep: feeds the idle-task watchdog
     }
     file.close();
+
+    if (totalSent != expected)
+        client.stop();
 }
