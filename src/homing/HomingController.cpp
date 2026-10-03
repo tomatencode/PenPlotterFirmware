@@ -1,6 +1,8 @@
 #include "HomingController.hpp"
 
+#include <algorithm>
 #include <esp_log.h>
+#include "config/HardwareConfig.hpp"
 
 static const char* TAG = "HomingController";
 
@@ -31,13 +33,22 @@ bool HomingController::checkPauseAbort() {
 }
 
 // Move stepper axes toward limit switches until stallguard detects stall
-void HomingController::moveToLimit(bool Afw, bool Bfw, uint16_t backOffSteps) {
+void HomingController::moveToLimit(LimitDirection direction, uint16_t backOffSteps) {
     float speed_stps_per_s = _runtimeSettings.homingSpeed_stp_per_s();
     float stallGuard_threshold = _runtimeSettings.stallguardThreshold();
     uint32_t homingTimeout_us = _runtimeSettings.homingTimeout_us();
     uint16_t sgCheckInterval_ms = _runtimeSettings.sgCheckInterval_ms();
     uint16_t sgStartTimeout_ms = _runtimeSettings.sgStartTimeout_ms();
     uint8_t sgHistorySize = _runtimeSettings.sgHistorySize();
+
+    // Compute motor directions toward each limit using the configured coordinate system
+    float xDir = (direction == LimitDirection::X_PLUS) ? 1.0f : (direction == LimitDirection::X_MINUS) ? -1.0f : 0.0f;
+    float yDir = (direction == LimitDirection::Y_PLUS) ? 1.0f : (direction == LimitDirection::Y_MINUS) ? -1.0f : 0.0f;
+
+    MotorSteps limitDir = _kinematics.mmToSteps({xDir, yDir});
+
+    bool Afw = limitDir.a > 0;
+    bool Bfw = limitDir.b > 0;
     
     if (speed_stps_per_s <= 0.0f) {
         ESP_LOGE(TAG, "Invalid homing speed");
@@ -48,6 +59,9 @@ void HomingController::moveToLimit(bool Afw, bool Bfw, uint16_t backOffSteps) {
         ESP_LOGE(TAG, "Drivers have different microstep settings");
         return;
     }
+
+    constexpr uint32_t positionUpdateIntervalUs = 20000UL;
+    uint32_t lastPositionUpdateUs = micros();
 
     uint32_t sgCheckInterval_us = sgCheckInterval_ms * 1000UL;
     uint32_t last_SGcheck_time = micros() + sgStartTimeout_ms * 1000UL;
@@ -62,8 +76,27 @@ void HomingController::moveToLimit(bool Afw, bool Bfw, uint16_t backOffSteps) {
     _driverA.setSpeed(speedA);
     _driverB.setSpeed(speedB);
 
+
+
     while (true) {
         while ((uint32_t)(micros() - last_SGcheck_time) < sgCheckInterval_us) {
+            const uint32_t nowUs = micros();
+            const uint32_t elapsedUs = nowUs - lastPositionUpdateUs;
+            if (elapsedUs >= positionUpdateIntervalUs) {
+                const double distanceMm = (speed_stps_per_s * elapsedUs) / (STEPS_PER_MM * 1000000.0);
+                const double newPosX = std::clamp(
+                    _motionState.getMachineX() + (xDir * distanceMm),
+                    0.0,
+                    static_cast<double>(MAX_X_MM));
+                const double newPosY = std::clamp(
+                    _motionState.getMachineY() + (yDir * distanceMm),
+                    0.0,
+                    static_cast<double>(MAX_Y_MM));
+
+                _motionState.setMachineX(newPosX);
+                _motionState.setMachineY(newPosY);
+                lastPositionUpdateUs = nowUs;
+            }
             yield();
         }
         last_SGcheck_time = micros();
@@ -122,12 +155,26 @@ void HomingController::moveToLimit(bool Afw, bool Bfw, uint16_t backOffSteps) {
     }
     uint16_t stepInterval_us = 1000000UL / microsteps_per_s;
 
-    for (uint16_t i = 0; i < backOffSteps * _axisA.microsteps(); i++) {
+    const uint32_t backOffStartUs = micros();
+    uint32_t lastBackOffPositionUpdateUs = backOffStartUs;
+    const double backOffStartX = _motionState.getMachineX();
+    const double backOffStartY = _motionState.getMachineY();
+    const uint32_t totalBackOffMicrosteps = backOffSteps * _axisA.microsteps();
+
+    for (uint32_t i = 0; i < totalBackOffMicrosteps; i++) {
         if (checkPauseAbort()) return;
         
         _axisA.step(!Afw);
         _axisB.step(!Bfw);
         delayMicroseconds(stepInterval_us);
+
+        const uint32_t nowUs = micros();
+        if (nowUs - lastBackOffPositionUpdateUs >= positionUpdateIntervalUs || i + 1 == totalBackOffMicrosteps) {
+            const double distanceMm = static_cast<double>(i + 1) / (_axisA.microsteps() * STEPS_PER_MM);
+            _motionState.setMachineX(std::clamp(backOffStartX - (xDir * distanceMm), 0.0, static_cast<double>(MAX_X_MM)));
+            _motionState.setMachineY(std::clamp(backOffStartY - (yDir * distanceMm), 0.0, static_cast<double>(MAX_Y_MM)));
+            lastBackOffPositionUpdateUs = nowUs;
+        }
     }
 }
 
@@ -137,12 +184,8 @@ void HomingController::home() {
         return;
     }
 
-    // Compute motor directions toward each limit using the configured coordinate system
-    MotorSteps xLimitDir = _kinematics.mmToSteps({-1.0, 0.0});
-    MotorSteps yLimitDir = _kinematics.mmToSteps({0.0, -1.0});
-
     // Move to X limit
-    moveToLimit(xLimitDir.a >= 0, xLimitDir.b >= 0, _runtimeSettings.backOffStepsX());
+    moveToLimit(LimitDirection::X_MINUS, _runtimeSettings.backOffStepsX());
     if (_motionCommand.getCommand() == MotionCommandType::ABORT) return;
 
     // Interruptible delay before moving to Y limit
@@ -153,7 +196,7 @@ void HomingController::home() {
     }
 
     // Move to Y limit
-    moveToLimit(yLimitDir.a >= 0, yLimitDir.b >= 0, _runtimeSettings.backOffStepsY());
+    moveToLimit(LimitDirection::Y_MINUS, _runtimeSettings.backOffStepsY());
     if (_motionCommand.getCommand() == MotionCommandType::ABORT) return;
 
     // Zero both axes

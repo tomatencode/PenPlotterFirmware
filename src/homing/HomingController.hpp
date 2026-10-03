@@ -22,6 +22,13 @@ private:
     RuntimeSettings& _runtimeSettings;
     CoreXYKinematics& _kinematics;
 
-    void moveToLimit(bool Afw, bool Bfw, uint16_t backOffSteps);
+    enum class LimitDirection {
+        X_PLUS,
+        X_MINUS,
+        Y_PLUS,
+        Y_MINUS
+    };
+
+    void moveToLimit(LimitDirection direction, uint16_t backOffSteps);
     bool checkPauseAbort();  // Handle pause/abort during homing; return true if should abort
 };
