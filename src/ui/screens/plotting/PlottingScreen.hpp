@@ -19,6 +19,18 @@
 namespace ui {
 namespace screens {
 
+namespace {
+    std::string formatRemainingPlotTime(size_t seconds) {
+        size_t mins = seconds / 60;
+        size_t secs = seconds % 60;
+        if (mins == 0) {
+            return "- " + std::to_string(secs) + "s";
+        } else {
+            return "- " + std::to_string(mins) + "m " + std::to_string(secs) + "s";
+        }
+    }
+}
+
 class PlottingScreen : public Screen, public JobObserver
 {
 public:
@@ -51,7 +63,7 @@ public:
 
 
             std::make_unique<widgets::Label>([&jc = ctx.jobController]() {
-                return "-" + std::to_string(jc.getTimeRemainingSeconds()) + "s";
+                return formatRemainingPlotTime(jc.getTimeRemainingSeconds());
             }),
 
             std::make_unique<widgets::Conditional>(
