@@ -51,6 +51,37 @@ WebInterface::~WebInterface() {
     _settingPersistence.unregisterObserver(this);
 }
 
+void WebInterface::startTask() {
+    if (_taskHandle != nullptr)
+        return;
+
+    const BaseType_t created = xTaskCreatePinnedToCore(
+        taskEntry,
+        "WebTask",
+        8192,
+        this,
+        1,
+        &_taskHandle,
+        0);
+
+    if (created != pdPASS)
+    {
+        _taskHandle = nullptr;
+        ESP_LOGE(TAG, "Failed to create web task");
+    }
+}
+
+void WebInterface::taskEntry(void* parameter) {
+    WebInterface* webInterface = static_cast<WebInterface*>(parameter);
+
+    ESP_LOGI(TAG, "Web task running on core %d", xPortGetCoreID());
+    while (true)
+    {
+        webInterface->update();
+        vTaskDelay(1);
+    }
+}
+
 void WebInterface::update() {
     SettingObserver::checkIfSettingsChanged();
 

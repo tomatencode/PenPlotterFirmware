@@ -53,6 +53,7 @@ void SystemController::init()
 
     _wifiController.init();
     _webInterface.init();
+    _webInterface.startTask();
 
     _buzzer.playMelody(startupMelody);
 }
@@ -60,7 +61,6 @@ void SystemController::init()
 void SystemController::update()
 {
     _wifiController.update();
-    _webInterface.update();
     _jobController.update();
     _buzzer.update();
     _uiOrchestrator.update();

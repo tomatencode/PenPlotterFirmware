@@ -38,6 +38,7 @@ public:
     ~WebInterface();
 
     void init();
+    void startTask();
     void update();
 
 private:
@@ -51,6 +52,7 @@ private:
 
     WebServer _httpServer;
     WebSocketsServer _wsServer;
+    TaskHandle_t _taskHandle = nullptr;
     bool _serverStarted = false;
     unsigned long _lastStateMs = 0;
 
@@ -61,6 +63,7 @@ private:
     size_t _uploadedBytes = 0;
     static constexpr size_t MAX_UPLOAD_SIZE = 10 * 1024 * 1024; // 10 MB limit
 
+    static void taskEntry(void* parameter);
     void setupServer();
 
     // WebSocket
