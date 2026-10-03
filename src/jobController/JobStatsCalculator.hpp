@@ -23,10 +23,9 @@ inline PlotJobStats calculateStats(FileManager& fileManager, RuntimeSettings& ru
     if  (file.available()) {
         String stats_line = file.readStringUntil('\n');
 
-        unsigned int travel_mm, draw_mm, pen_lifts;
-        if (sscanf(stats_line.c_str(), "; STATS: travel_mm=%u draw_mm=%u pen_lifts=%u executable_lines=%u",
-                &travel_mm, &draw_mm, &pen_lifts, &stats.totalLines) == 4) {
-            
+        unsigned int travel_mm, draw_mm, pen_lifts, pen_switches;
+        if (sscanf(stats_line.c_str(), "; STATS: travel_mm=%u draw_mm=%u pen_lifts=%u pen_switches=%u executable_lines=%u",
+                &travel_mm, &draw_mm, &pen_lifts, &pen_switches, &stats.totalLines) == 5) {
             if (runtimesettings.travelFeedRate_mm_per_s() == 0 || runtimesettings.drawFeedRate_mm_per_s() == 0) {
                 ESP_LOGW("JobStatsCalculator", "Feed rates cannot be zero, defaulting to 0 total time");
                 stats.totalTimeSeconds = 0;
@@ -43,7 +42,6 @@ inline PlotJobStats calculateStats(FileManager& fileManager, RuntimeSettings& ru
             ESP_LOGW("JobStatsCalculator", "Failed to parse stats line, defaulting to 0 total time");
             stats.totalTimeSeconds = 0;
         }
-        stats.totalLines++;
     }
 
     file.close();

@@ -41,6 +41,7 @@ void WebInterface::handleDownloadJob() {
     while ((bytesRead = file.read(buffer, sizeof(buffer))) > 0)
     {
         _httpServer.client().write(buffer, bytesRead);
+        vTaskDelay(1); // Yield to allow other tasks to run
     }
     file.close();
 }
